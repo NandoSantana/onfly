@@ -17,20 +17,13 @@ Route::post('auth/login', 'App\Http\Controllers\Api\AuthController@login');
 
 Route::group(['middleware' => ['apiJwt']], function(){
     
-
-
     Route::post('despesas/create', 'App\Http\Controllers\Api\DespesasController@createDespesas');
     Route::put('despesas/{id}/update', 'App\Http\Controllers\Api\DespesasController@despesasUpdate');
     Route::delete('despesas/{id}/delete', 'App\Http\Controllers\Api\DespesasController@despesasDelete');
     Route::get('despesas/show', 'App\Http\Controllers\Api\\DespesasController@index');
 
-    Route::post('logout', 'Api\\AuthController@logout');
-    Route::post('refresh', 'Api\\AuthController@refresh');
-    Route::get('me', 'Api\\AuthController@me');
+    Route::post('logout', 'App\Http\Controllers\Api\\AuthController@logout');
+    Route::post('refresh', 'App\Http\Controllers\Api\\AuthController@refresh');
+    Route::get('me', 'App\Http\Controllers\Api\\AuthController@me');
 
 });
-
-
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });

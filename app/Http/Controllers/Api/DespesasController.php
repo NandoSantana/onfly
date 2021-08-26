@@ -5,12 +5,18 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Despesas;
 use Illuminate\Http\Request;
+use App\Jobs\processaEmail;
 
 class DespesasController extends Controller
 {
 
     public function validar(Request $request){
+        
         $message = [];
+
+        if(!is_numeric(auth('api')->user()->id)){
+            $message[] = ['message' => 'Usuário não existe ou não está logado.'];   
+        }
         if(!isset($request->descricao)){
             $message[] = ['message' => 'campo descricao requerido'];   
         }
@@ -32,11 +38,28 @@ class DespesasController extends Controller
         return $message;
     }
 
+    public function buscaEmail(){
+        $collection = Despesas::join('users', 'users.id', '=','despesas.user_id')
+            ->where('user_id', auth('api')->user()->id)
+            ->get(
+                [
+                    'despesas.id',
+                    'despesas.valor',
+                    'despesas.descricao',
+                    'users.email'
+                ]     
+            )->first();
+
+        return $collection['email'];
+
+    }
+
     public function createDespesas(Request $request){
         
         if(count($this->validar($request)) > 0){
             return $this->validar($request);
         }
+        processaEmail::dispatch($this, $this->buscaEmail());
 
         $create = Despesas::create([
             'descricao' => $request->descricao,
@@ -74,12 +97,14 @@ class DespesasController extends Controller
 
     public function index()
     {
-        $collection = Despesas::join('users', 'users.id', '=','despesas.user_id')   
+        $collection = Despesas::join('users', 'users.id', '=','despesas.user_id')
+            ->where('user_id' , '=', auth('api')->user()->id)
             ->get(
                 [
                     'despesas.id',
                     'despesas.valor',
                     'despesas.descricao',
+                    'despesas.data',
                     'users.email'
                 ]     
             );
